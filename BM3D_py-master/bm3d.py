@@ -2,6 +2,7 @@ from utils import add_gaussian_noise, symetrize
 from bm3d_1st_step import bm3d_1st_step
 from bm3d_2nd_step import bm3d_2nd_step
 from psnr import compute_psnr
+from sklearn.metrics import mean_squared_error
 
 
 def run_bm3d(noisy_im, sigma,
@@ -48,32 +49,30 @@ if __name__ == '__main__':
     im_dir = 'test_data/image'
     save_dir = 'temp_test_result'
     os.makedirs(save_dir, exist_ok=True)
-    # for im_name in os.listdir(im_dir):
-    for im_name in ['Cameraman.png',]:
-        # sigma_list = [2, 5, 10, 20, 30, 40, 60, 80, 100]
-        sigma_list = [20]
-        for sigma in sigma_list:
-            print(im_name, '  ', sigma)
-            tauMatch_H = 2500 if sigma < 35 else 5000  # ! threshold determinates similarity between patches
-            tauMatch_W = 400 if sigma < 35 else 3500  # ! threshold determinates similarity between patches
-            noisy_dir = 'test_data/sigma' + str(sigma)
+    i=0
+    j=0
+    for im_name in os.listdir(im_dir):
+        i+=1
+        sigma_list = [2, 5, 10, 20, 30, 40, 60, 80, 100]
+        A=np.zeros((len(os.listdir(im_dir)),4))
+        sigma=5
+        print(im_name, '  ', sigma)
+        tauMatch_H = 2500 if sigma < 35 else 5000  # ! threshold determinates similarity between patches
+        tauMatch_W = 400 if sigma < 35 else 3500  # ! threshold determinates similarity between patches
+        noisy_dir = 'test_data/sigma' + str(sigma)
 
-            im_path = os.path.join(im_dir, im_name)
-            im = cv2.imread(im_path, cv2.IMREAD_GRAYSCALE)
-            noisy_im_path = os.path.join(noisy_dir, im_name)
-            noisy_im = cv2.imread(noisy_im_path, cv2.IMREAD_GRAYSCALE)
+        im_path = os.path.join(im_dir, im_name)
+        im = cv2.imread(im_path, cv2.IMREAD_GRAYSCALE)
+        noisy_im_path = os.path.join(noisy_dir, im_name)
+        noisy_im = cv2.imread(noisy_im_path, cv2.IMREAD_GRAYSCALE)
 
-            im1, im2 = run_bm3d(noisy_im, sigma,
+        im1, im2 = run_bm3d(noisy_im, sigma,
                                 n_H, k_H, N_H, p_H, tauMatch_H, useSD_H, tau_2D_H, lambda3D_H,
                                 n_W, k_W, N_W, p_W, tauMatch_W, useSD_W, tau_2D_W)
 
-            psnr_1st = compute_psnr(im, im1)
-            psnr_2nd = compute_psnr(im, im2)
-
-            im1 = (np.clip(im1, 0, 255)).astype(np.uint8)
-            im2 = (np.clip(im2, 0, 255)).astype(np.uint8)
-
-            save_name = im_name[:-4] + '_s' + str(sigma) + '_py_1st_P' + '%.4f' % psnr_1st + '.png'
-            cv2.imwrite(os.path.join(save_dir, save_name), im1)
-            save_name = im_name[:-4] + '_s' + str(sigma) + '_py_2nd_P' + '%.4f' % psnr_2nd + '.png'
-            cv2.imwrite(os.path.join(save_dir, save_name), im2)
+        psnr_1st = compute_psnr(im, im1)
+        psnr_2nd = compute_psnr(im, im2)
+        eqm_1st=mean_squared_error(im,im1)
+        eqm_2nd=mean_squared_error(im,im2)
+        A[i]=[psnr_1st,psnr_2nd,eqm_1st,eqm_2nd]
+    print(A)

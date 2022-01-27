@@ -48,17 +48,3 @@ def bior_2d_reverse(bior_img):
     return rec_im
 
 
-if __name__ == '__main__':
-    import cv2
-
-    img = cv2.imread('Cameraman256.png', cv2.IMREAD_GRAYSCALE)
-    bior_img = bior_2d_forward(img)
-
-    img_ = bior_2d_reverse(bior_img)
-
-    diff = np.abs(img - img_)
-    print(np.max(diff))
-    print(np.sum(diff))
-
-    cv2.imshow('', img_.astype(np.uint8))
-    cv2.waitKey()

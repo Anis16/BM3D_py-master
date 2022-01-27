@@ -83,32 +83,5 @@ def bm3d_2nd_step(sigma, img_noisy, img_basic, nWien, kWien, NWien, pWien, tauMa
     return img_denoised
 
 
-if __name__ == '__main__':
-    from psnr import compute_psnr
-    from utils import add_gaussian_noise, symetrize
 
-    # <hyper parameter> -------------------------------------------------------------------------------
-    sigma = 20
 
-    nWien = 16
-    kWien = 8
-    NWien = 16
-    pWien = 3
-    tauMatchWien = 400 if sigma < 35 else 3500  # ! threshold determinates similarity between patches
-    useSD_w = True
-    tau_2D_wien = 'DCT'
-    # <\ hyper parameter> -----------------------------------------------------------------------------
-
-    img = cv2.imread('Cameraman256.png', cv2.IMREAD_GRAYSCALE)
-    img_noisy = cv2.imread('image_noise.png', cv2.IMREAD_GRAYSCALE)
-    img_basic = cv2.imread('y_basic.png', cv2.IMREAD_GRAYSCALE)
-
-    img_basic_p = symetrize(img_basic, nWien)
-    img_noisy_p = symetrize(img_noisy, nWien)
-    img_denoised = bm3d_2nd_step(sigma, img_noisy_p, img_basic_p, nWien, kWien, NWien, pWien, tauMatchWien, useSD_w,
-                                 tau_2D_wien)
-    img_denoised = img_denoised[nWien: -nWien, nWien: -nWien]
-
-    psnr_2st = compute_psnr(img, img_denoised)
-    print('img and img_denoised PSNR: ', psnr_2st)
-    # cv2.imwrite('y_final.png', img_denoised.astype(np.uint8))
